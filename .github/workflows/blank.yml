@@ -135,82 +135,84 @@ jobs:
           overwrite: true
           file_glob: true
 
-name: Build_2404
-
-on:
-  push:
-    branches:
-      - main
-
-permissions:
-    contents: write
-
-jobs:
-  build_2404_geph:
+    # 编译24.04的迷雾通，用于mint 22.1
+    build_2404_geph:
     name: Build_2404
-    runs-on: ubuntu-24.04
-    steps:
-      # 创建构建文件夹
-      - name: Create build folder
-        run: mkdir ./build
 
-      # 安装依赖软件包 (包括添加和移除 Jammy 仓库)
-      - name: Install software
-        run: |
-          sudo apt update
-          # 添加 Ubuntu 22.04 (Jammy) 仓库
-          sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/jammy main universe"
-          sudo apt update
-          sudo apt install libgtk-3-dev libappindicator3-dev libwebkit2gtk-4.0-dev librsvg2-dev libssl-dev patchelf strace libpango1.0-dev libgdk-pixbuf2.0-dev gcc clang g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev build-essential curl
-          # 移除 Ubuntu 22.04 (Jammy) 仓库
-          sudo rm /etc/apt/sources.list.d/*jammy*.list
-          sudo rm /etc/apt/sources.list.d/*jammy*.list.save
-          sudo apt update
+    on:
+      push:
+        branches:
+          - main
 
-      # 拉取迷雾通github仓库
-      - name: Clone gephgui-wry
-        run: git clone --recurse-submodules https://github.com/geph-official/gephgui-wry.git
+    permissions:
+        contents: write
 
-      # 构建所需依赖文件
-      - name: Build gephgui
-        run: |
-          cd gephgui-wry/gephgui
-          npm install
-          npm run build
+    jobs:
+      build_2404_geph:
+        name: Build_2404
+        runs-on: ubuntu-24.04
+        steps:
+          # 创建构建文件夹
+          - name: Create build folder
+            run: mkdir ./build
 
-      # 构建图形界面程序
-      - name: Build gephgui-wry
-        run: |
-          cd gephgui-wry
-          cargo build --release
+          # 安装依赖软件包 (包括添加和移除 Jammy 仓库)
+          - name: Install software
+            run: |
+              sudo apt update
+              # 添加 Ubuntu 22.04 (Jammy) 仓库
+              sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/jammy main universe"
+              sudo apt update
+              sudo apt install libgtk-3-dev libappindicator3-dev libwebkit2gtk-4.0-dev librsvg2-dev libssl-dev patchelf strace libpango1.0-dev libgdk-pixbuf2.0-dev gcc clang g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev build-essential curl
+              # 移除 Ubuntu 22.04 (Jammy) 仓库
+              sudo rm /etc/apt/sources.list.d/*jammy*.list
+              sudo rm /etc/apt/sources.list.d/*jammy*.list.save
+              sudo apt update
 
-      # 复制图形界面程序到build文件夹
-      - name: Copy gephgui-wry
-        run: cp gephgui-wry/target/release/gephgui-wry ./build
+          # 拉取迷雾通github仓库
+          - name: Clone gephgui-wry
+            run: git clone --recurse-submodules https://github.com/geph-official/gephgui-wry.git
 
-      # 下载主程序
-      - name: Download gephgui-pkg
-        run: |
-          git clone https://github.com/geph-official/gephgui-pkg.git
-          cp -r gephgui-pkg/blobs/linux-x64/* ./build && cd ./build
-          bash -x pull-geph4-client.sh
-          mv ./pac-real ./pac
-          rm -rf ./pkexec ./pull-geph4-client.sh
-          echo "action_state=$(cat ./VERSION)" >> "$GITHUB_ENV"
-          echo "ubu_release=$(lsb_release -r | awk '{print $NF}' | cat | tr -d '.')" >> "$GITHUB_ENV"
+          # 构建所需依赖文件
+          - name: Build gephgui
+            run: |
+              cd gephgui-wry/gephgui
+              npm install
+              npm run build
 
-      # 打包TAR程序
-      - name: Create TAR archive
-        run: |
-          tar -Jcvf build_"${{ env.action_state }}"_ubu"${{ env.ubu_release }}".tar.xz ./build
-          mkdir release && cp build_*.tar.xz ./release
+          # 构建图形界面程序
+          - name: Build gephgui-wry
+            run: |
+              cd gephgui-wry
+              cargo build --release
 
-      # 发布release
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: release/*
-          tag: geph4_${{ env.action_state }}
-          overwrite: true
-          file_glob: true
+          # 复制图形界面程序到build文件夹
+          - name: Copy gephgui-wry
+            run: cp gephgui-wry/target/release/gephgui-wry ./build
+
+          # 下载主程序
+          - name: Download gephgui-pkg
+            run: |
+              git clone https://github.com/geph-official/gephgui-pkg.git
+              cp -r gephgui-pkg/blobs/linux-x64/* ./build && cd ./build
+              bash -x pull-geph4-client.sh
+              mv ./pac-real ./pac
+              rm -rf ./pkexec ./pull-geph4-client.sh
+              echo "action_state=$(cat ./VERSION)" >> "$GITHUB_ENV"
+              echo "ubu_release=$(lsb_release -r | awk '{print $NF}' | cat | tr -d '.')" >> "$GITHUB_ENV"
+
+          # 打包TAR程序
+          - name: Create TAR archive
+            run: |
+              tar -Jcvf build_"${{ env.action_state }}"_ubu"${{ env.ubu_release }}".tar.xz ./build
+              mkdir release && cp build_*.tar.xz ./release
+
+          # 发布release
+          - name: Upload binaries to release
+            uses: svenstaro/upload-release-action@v2
+            with:
+              repo_token: ${{ secrets.GITHUB_TOKEN }}
+              file: release/*
+              tag: geph4_${{ env.action_state }}
+              overwrite: true
+              file_glob: true
