@@ -135,23 +135,38 @@ jobs:
           overwrite: true
           file_glob: true
 
-  # 编译24.04的迷雾通，用于mint 22.1
+name: Build_2404
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+    contents: write
+
+jobs:
   build_2404_geph:
     name: Build_2404
-    permissions:
-        contents: write
     runs-on: ubuntu-24.04
     steps:
       # 创建构建文件夹
       - name: Create build folder
         run: mkdir ./build
 
-      # 安装依赖软件包
+      # 安装依赖软件包 (包括添加和移除 Jammy 仓库)
       - name: Install software
         run: |
           sudo apt update
+          # 添加 Ubuntu 22.04 (Jammy) 仓库
+          sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/jammy main universe"
+          sudo apt update
           sudo apt install libgtk-3-dev libappindicator3-dev libwebkit2gtk-4.0-dev librsvg2-dev libssl-dev patchelf strace libpango1.0-dev libgdk-pixbuf2.0-dev gcc clang g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev build-essential curl
-      
+          # 移除 Ubuntu 22.04 (Jammy) 仓库
+          sudo rm /etc/apt/sources.list.d/*jammy*.list
+          sudo rm /etc/apt/sources.list.d/*jammy*.list.save
+          sudo apt update
+
       # 拉取迷雾通github仓库
       - name: Clone gephgui-wry
         run: git clone --recurse-submodules https://github.com/geph-official/gephgui-wry.git
