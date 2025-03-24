@@ -1,4 +1,4 @@
-name: build geph for ununtu
+name: build geph for different ununtus
 on:
   workflow_dispatch:
   schedule:
