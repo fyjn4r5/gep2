@@ -18,9 +18,9 @@ jobs:
       # 安装依赖软件包
       - name: Install software
         run: |
+          sudo sed -i 's/jammy/noble/g' /etc/apt/sources.list
+          sudo rm -rf /etc/apt/sources.list.d/*
           sudo apt update
-          # 安装依赖包，并避免安装不必要的推荐包
-          apt-cache search webkit2gtk
           # 安装依赖包，并避免安装不必要的推荐包2
           sudo apt install --no-install-recommends libgtk-3-dev libappindicator3-dev libwebkit2gtk-4.1-dev librsvg2-dev libssl-dev patchelf strace libpango1.0-dev libgdk-pixbuf2.0-dev gcc clang g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev build-essential curl
 
