@@ -54,12 +54,6 @@ jobs:
           echo "action_state=$(cat ./VERSION)" >> "$GITHUB_ENV"
           echo "ubu_release=$(lsb_release -r | awk '{print $NF}' | cat | tr -d '.')" >> "$GITHUB_ENV"
 
-      # 清除添加的源
-      - name: Remove added Jammy repository
-        run: |
-          sudo rm /etc/apt/sources.list.d/ubuntu.sources
-          sudo apt update
-
       # 打包TAR程序
       - name: Create TAR archive
         run: |
